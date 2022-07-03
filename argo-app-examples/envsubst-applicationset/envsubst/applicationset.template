@@ -1,0 +1,31 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+    name: helloworld-envsubst
+spec:
+    generators:
+    - list:
+        elements:
+        - namespace: gitops-demo
+          server: https://kubernetes.default.svc
+    template:
+        metadata:
+            name: 'helloworld-envsubst'
+        spec:
+            destination:
+                namespace: '{{namespace}}'
+                server: '{{server}}'
+            project: default
+            source:
+                repoURL: http://gitlab-192-168-1-102.nip.io:30080/Morpheus/gitops-demo.git
+                targetRevision: HEAD
+                path: 'argo-app-examples/envsubst-applicationset/helloworld'
+                helm:
+                  parameters:
+                    - name: image.repository
+                      value: morpheusph/hello
+                    - name: image.tag
+                      value: ${CI_COMMIT_SHORT_SHA}
+            syncPolicy:
+                automated:
+                    prune: true
